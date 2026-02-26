@@ -10,6 +10,9 @@
 <body>
   <header>
     <div class="container">
+      <div class="user-status">
+        <span id="creditDisplay">✨ 오늘 남은 무료 피팅: 3회</span>
+      </div>
       <h1>SEYU CLOSET</h1>
       <p>가장 인기 있는 쇼핑몰을 한곳에서 만나보세요</p>
       <div class="search-container">
@@ -25,7 +28,7 @@
       <button class="tag" data-filter="women">여성</button>
       <button class="tag" data-filter="designer">디자이너</button>
       <button class="tag" data-filter="street">스트릿</button>
-      <button class="tag vton-btn" id="openFittingRoom">✨ 가상 피팅룸</button>
+      <button class="tag vton-btn" id="openFittingRoom">✨ AI 피팅룸 열기</button>
     </div>
     
     <div id="mallGrid" class="mall-grid">
@@ -38,52 +41,60 @@
     <div class="modal-content">
       <span class="close">&times;</span>
       <h2>✨ AI 가상 피팅룸</h2>
-      <p class="modal-desc">본인의 사진과 옷 사진을 올려 AI로 착용 샷을 생성합니다.</p>
+      <p class="modal-desc">내 사진에 마음에 드는 옷을 바로 입혀보세요.</p>
       
       <div class="vton-grid">
         <div class="upload-section">
-          <label>1. 내 사진 업로드 (전신/상반신)</label>
+          <label>1. 내 사진 업로드</label>
           <div class="drop-zone" id="userPhotoZone">
             <input type="file" id="userPhotoInput" hidden accept="image/*">
-            <p>사진을 클릭하여 업로드</p>
+            <p>전신/상반신 사진</p>
             <img id="userPreview" class="preview-img" style="display:none;">
           </div>
         </div>
         
         <div class="upload-section">
-          <label>2. 입어볼 옷 이미지</label>
+          <label>2. 선택된 옷</label>
           <div class="drop-zone" id="garmentPhotoZone">
             <input type="file" id="garmentPhotoInput" hidden accept="image/*">
-            <p>옷 사진 업로드</p>
+            <p id="garmentPlaceholder">쇼핑몰에서 선택하거나 업로드</p>
             <img id="garmentPreview" class="preview-img" style="display:none;">
           </div>
         </div>
       </div>
 
       <div class="vton-options">
-        <label>사이즈/체형 설정</label>
+        <label>사이즈/체형</label>
         <select id="sizeSelect">
-          <option value="S">Small (슬림)</option>
-          <option value="M" selected>Medium (보통)</option>
-          <option value="L">Large (루즈핏)</option>
-          <option value="XL">X-Large (오버핏)</option>
+          <option value="S">Slim (S)</option>
+          <option value="M" selected>Regular (M)</option>
+          <option value="L">Loose (L)</option>
+          <option value="XL">Over (XL)</option>
         </select>
       </div>
 
+      <button id="generateBtn" class="btn-primary">AI 피팅 시작하기 (1 크레딧)</button>
+
       <div class="api-settings">
-        <button id="toggleApiSettings" class="btn-secondary">⚙️ API 설정 (Replicate)</button>
+        <button id="toggleApiSettings" class="btn-secondary">개발자 도구 (API 설정)</button>
         <div id="apiConfigArea" style="display:none; margin-top: 10px;">
-          <input type="password" id="replicateToken" placeholder="Replicate API Token을 입력하세요">
-          <p class="small-text">토큰은 브라우저에만 안전하게 저장됩니다.</p>
+          <input type="password" id="replicateToken" placeholder="Replicate API Token">
         </div>
       </div>
 
-      <button id="generateBtn" class="btn-primary">AI 피팅 이미지 생성</button>
-
-      <div id="resultSection" class="result-section">
-        <h3>생성 결과</h3>
-        <div id="loading" class="loading" style="display:none;">AI가 옷을 입혀드리는 중... (약 30~60초 소요)</div>
-        <img id="vtonResult" class="result-img" style="display:none;">
+      <div id="resultSection" class="result-section" style="display:none;">
+        <h3>피팅 결과</h3>
+        <div id="loading" class="loading" style="display:none;">AI가 스타일을 분석 중입니다...</div>
+        <img id="vtonResult" class="result-img">
+        
+        <div class="share-container">
+          <p>이 스타일이 마음에 드시나요?</p>
+          <div class="share-buttons">
+            <button class="share-btn kakao">카카오톡</button>
+            <button class="share-btn instagram">인스타그램</button>
+            <button class="share-btn link">링크 복사</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

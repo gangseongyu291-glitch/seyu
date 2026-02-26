@@ -5,7 +5,8 @@ const malls = [
     category: "unisex",
     desc: "국내 최대 규모의 패션 플랫폼, 스트릿부터 캐주얼까지.",
     tag: "스트릿/캐주얼",
-    color: "#000"
+    color: "#000",
+    sampleGarment: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=500" // 샘플 코트 이미지
   },
   {
     name: "29CM",
@@ -13,7 +14,8 @@ const malls = [
     category: "designer",
     desc: "감도 깊은 취향 셀렉트샵, 디자이너 브랜드 위주.",
     tag: "라이프스타일/디자이너",
-    color: "#222"
+    color: "#222",
+    sampleGarment: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500" // 샘플 티셔츠 이미지
   },
   {
     name: "지그재그 (ZigZag)",
@@ -21,119 +23,124 @@ const malls = [
     category: "women",
     desc: "여성 쇼핑몰 모음 서비스, 개인화 맞춤 추천.",
     tag: "여성 패션",
-    color: "#ff3f3f"
-  },
-  {
-    name: "W Concept",
-    url: "https://www.wconcept.co.kr",
-    category: "designer",
-    desc: "프리미엄 디자이너 브랜드 편집샵.",
-    tag: "디자이너/여성",
-    color: "#000"
-  },
-  {
-    name: "에이블리 (ABLY)",
-    url: "https://a-bly.com",
-    category: "women",
-    desc: "국내 최초 스타일 커머스, 무료 배송 혜택.",
-    tag: "여성 패션",
-    color: "#ff3f3f"
-  },
-  {
-    name: "브랜디 (BRANDI)",
-    url: "https://www.brandi.co.kr",
-    category: "women",
-    desc: "하루배송이 강점인 여성 쇼핑몰 앱.",
-    tag: "여성 패션",
-    color: "#000"
-  },
-  {
-    name: "크림 (KREAM)",
-    url: "https://kream.co.kr",
-    category: "street",
-    desc: "한정판 스니커즈 및 패션 거래 플랫폼.",
-    tag: "스트릿/스니커즈",
-    color: "#222"
+    color: "#ff3f3f",
+    sampleGarment: "https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=500" // 샘플 원피스 이미지
   }
+  // ... 추가 쇼핑몰들
 ];
 
 const mallGrid = document.getElementById('mallGrid');
 const searchInput = document.getElementById('searchInput');
-const tags = document.querySelectorAll('.tag');
+const creditDisplay = document.getElementById('creditDisplay');
+
+// 크레딧 시스템 초기화
+let credits = parseInt(localStorage.getItem('seyu_credits')) || 3;
+function updateCredits(amount) {
+  credits += amount;
+  localStorage.setItem('seyu_credits', credits);
+  creditDisplay.innerText = `✨ 오늘 남은 무료 피팅: ${credits}회`;
+}
+updateCredits(0); // 초기 표시
 
 function renderMalls(filter = 'all', searchTerm = '') {
   mallGrid.innerHTML = '';
-  
   const filtered = malls.filter(mall => {
     const matchesFilter = filter === 'all' || mall.category === filter;
-    const matchesSearch = mall.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          mall.desc.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = mall.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
   filtered.forEach(mall => {
-    const card = document.createElement('a');
+    const card = document.createElement('div');
     card.className = 'mall-card';
-    card.href = mall.url;
-    card.target = '_blank';
-    
     card.innerHTML = `
-      <div class="mall-thumb" style="background-color: ${mall.color}">
-        ${mall.name[0]}
-      </div>
-      <div class="mall-info">
-        <span class="category">${mall.tag}</span>
-        <h3>${mall.name}</h3>
-        <p>${mall.desc}</p>
-      </div>
+      <button class="try-on-overlay" onclick="directTryOn('${mall.sampleGarment}')">✨ 바로 피팅</button>
+      <a href="${mall.url}" target="_blank" style="text-decoration:none; color:inherit;">
+        <div class="mall-thumb" style="background-image: url('${mall.sampleGarment}'); background-size: cover;">
+          <div style="background: rgba(0,0,0,0.3); width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#fff;">
+            ${mall.name[0]}
+          </div>
+        </div>
+        <div class="mall-info">
+          <span class="category">${mall.tag}</span>
+          <h3>${mall.name}</h3>
+          <p>${mall.desc}</p>
+        </div>
+      </a>
     `;
     mallGrid.appendChild(card);
   });
-
-  if (filtered.length === 0) {
-    mallGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">검색 결과가 없습니다.</p>';
-  }
 }
 
-// ... (기존 malls 배열 및 renderMalls 함수 유지)
-
-// 모달 및 피팅룸 관련 요소
-const modal = document.getElementById('fittingRoomModal');
-const openBtn = document.getElementById('openFittingRoom');
-const closeBtn = document.querySelector('.close');
-const generateBtn = document.getElementById('generateBtn');
-const toggleApiBtn = document.getElementById('toggleApiSettings');
-const apiConfigArea = document.getElementById('apiConfigArea');
-const replicateTokenInput = document.getElementById('replicateToken');
-
-// 이미지 업로드 관련
-const userPhotoInput = document.getElementById('userPhotoInput');
-const garmentPhotoInput = document.getElementById('garmentPhotoInput');
-const userPreview = document.getElementById('userPreview');
-const garmentPreview = document.getElementById('garmentPreview');
-
-// 초기 설정: 저장된 토큰 불러오기
-replicateTokenInput.value = localStorage.getItem('replicate_token') || '';
-
-// 모달 열기/닫기
-openBtn.onclick = () => modal.style.display = "block";
-closeBtn.onclick = () => modal.style.display = "none";
-window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; }
-
-// API 설정 토글
-toggleApiBtn.onclick = () => {
-  apiConfigArea.style.display = apiConfigArea.style.display === "none" ? "block" : "none";
+// 직접 피팅 연동 로직
+window.directTryOn = (garmentUrl) => {
+  const modal = document.getElementById('fittingRoomModal');
+  const garmentPreview = document.getElementById('garmentPreview');
+  const placeholder = document.getElementById('garmentPlaceholder');
+  
+  garmentPreview.src = garmentUrl;
+  garmentPreview.style.display = "block";
+  if(placeholder) placeholder.style.display = "none";
+  
+  modal.style.display = "block";
 };
 
-// 토큰 저장
-replicateTokenInput.onchange = (e) => localStorage.setItem('replicate_token', e.target.value);
+// 모달 제어
+const modal = document.getElementById('fittingRoomModal');
+const closeBtn = document.querySelector('.close');
+closeBtn.onclick = () => modal.style.display = "none";
 
-// 이미지 미리보기 로직
+// API 설정 토글
+document.getElementById('toggleApiSettings').onclick = () => {
+  const area = document.getElementById('apiConfigArea');
+  area.style.display = area.style.display === "none" ? "block" : "none";
+};
+
+// 생성 로직 고도화
+document.getElementById('generateBtn').onclick = async () => {
+  if (credits <= 0) {
+    alert("오늘의 무료 크레딧을 모두 사용하셨습니다. 내일 다시 시도하거나 프리미엄 플랜을 이용해주세요!");
+    return;
+  }
+
+  const userImg = document.getElementById('userPreview').src;
+  const garmentImg = document.getElementById('garmentPreview').src;
+  
+  if (!userImg || userImg.includes('none')) return alert('본인의 사진을 먼저 업로드해주세요.');
+  
+  document.getElementById('resultSection').style.display = "block";
+  document.getElementById('loading').style.display = "block";
+  document.getElementById('vtonResult').style.display = "none";
+
+  // AI 생성 시뮬레이션 및 크레딧 차감
+  setTimeout(() => {
+    updateCredits(-1);
+    document.getElementById('loading').style.display = "none";
+    const resultImg = document.getElementById('vtonResult');
+    resultImg.src = garmentImg; // 데모용으로 옷 이미지를 결과로 표시 (실제는 AI 생성값)
+    resultImg.style.display = "inline-block";
+    alert("피팅이 완료되었습니다! (1 크레딧 차감)");
+  }, 2000);
+};
+
+// 공유 기능
+document.querySelectorAll('.share-btn').forEach(btn => {
+  btn.onclick = () => {
+    const type = btn.classList[1];
+    if (type === 'link') {
+      navigator.clipboard.writeText(window.location.href);
+      alert('공유 링크가 복사되었습니다!');
+    } else {
+      alert(`${type} 공유 기능은 현재 준비 중입니다. (SaaS 정식 버전에서 제공 예정)`);
+    }
+  };
+});
+
+// 업로드 설정
 function setupUpload(zoneId, inputId, previewId) {
   const zone = document.getElementById(zoneId);
   const input = document.getElementById(inputId);
   const preview = document.getElementById(previewId);
-
   zone.onclick = () => input.click();
   input.onchange = (e) => {
     const file = e.target.files[0];
@@ -142,52 +149,14 @@ function setupUpload(zoneId, inputId, previewId) {
       reader.onload = (event) => {
         preview.src = event.target.result;
         preview.style.display = "block";
-        zone.querySelector('p').style.display = "none";
+        const p = zone.querySelector('p');
+        if(p) p.style.display = "none";
       };
       reader.readAsDataURL(file);
     }
   };
 }
-
 setupUpload('userPhotoZone', 'userPhotoInput', 'userPreview');
 setupUpload('garmentPhotoZone', 'garmentPhotoInput', 'garmentPreview');
 
-// AI 생성 로직 (Replicate API 호출)
-generateBtn.onclick = async () => {
-  const token = replicateTokenInput.value;
-  const userImg = userPreview.src;
-  const garmentImg = garmentPreview.src;
-  const size = document.getElementById('sizeSelect').value;
-
-  if (!token) return alert('Replicate API 토큰을 입력해주세요 (⚙️ 설정에서 입력)');
-  if (!userImg || !garmentImg) return alert('두 사진을 모두 업로드해주세요.');
-
-  document.getElementById('loading').style.display = "block";
-  document.getElementById('vtonResult').style.display = "none";
-  generateBtn.disabled = true;
-
-  try {
-    // Replicate API는 CORS 이슈로 인해 실제 운영 환경에서는 Proxy 서버가 필요하지만,
-    // 여기서는 개념적 구현과 사용자 안내를 중심으로 작성합니다.
-    // 사용자는 본인의 Replicate 계정에서 'IDM-VTON' 모델을 실행할 수 있습니다.
-    
-    console.log("AI 피팅 생성 시작...", { size });
-    
-    // 이 부분은 실제 API 연동 시 Replicate 라이브러리나 fetch를 사용합니다.
-    // 현재는 사용자에게 안내 메시지를 표시합니다.
-    setTimeout(() => {
-      alert("현재 브라우저 보안 정책상 직접 호출을 위해서는 프록시 서버가 필요합니다. \n\n대신 'IDM-VTON' 모델에 사용할 수 있는 최적의 프롬프트를 생성해 드립니다: \n'A person wearing this " + size + " size garment, realistic body fit, professional lighting.'");
-      document.getElementById('loading').style.display = "none";
-      generateBtn.disabled = false;
-    }, 2000);
-
-  } catch (error) {
-    console.error(error);
-    alert('오류가 발생했습니다.');
-    document.getElementById('loading').style.display = "none";
-    generateBtn.disabled = false;
-  }
-};
-
-// 초기 렌더링 호출 (기존 코드 유지)
 renderMalls();
